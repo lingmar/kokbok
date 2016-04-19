@@ -131,16 +131,16 @@ CREATE TABLE Recipe_Instruction (
 );
 
 CREATE TABLE Picture (
-	ID int,
+	ID int PRIMARY KEY AUTO_INCREMENT,
     Filename varchar(256) UNIQUE NOT NULL
 );
 
 CREATE TABLE Recipe_Picture (
-RecipeID int,
-PictureID int,
-FOREIGN KEY (RecipeID) REFERENCES Recipe(ID),
-FOREIGN KEY (PictureID) REFERENCES Picture(ID),
-PRIMARY KEY(RecipeID, PictureID)
+       RecipeID int,
+       PictureID int,
+       FOREIGN KEY (RecipeID) REFERENCES Recipe(ID),
+        FOREIGN KEY (PictureID) REFERENCES Picture(ID),
+        PRIMARY KEY(RecipeID, PictureID)
 );
 
 COMMIT;

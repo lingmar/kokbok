@@ -23,7 +23,6 @@ DROP TABLE IF EXISTS Ingredient;
 DROP TABLE IF EXISTS IngredientCategory;
 DROP TABLE IF EXISTS Picture;
 
---
 CREATE TABLE Recipe (
        ID int PRIMARY KEY AUTO_INCREMENT,
        Title varchar(256) NOT NULL,

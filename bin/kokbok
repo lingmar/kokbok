@@ -10,20 +10,22 @@ from kokbok import conf
 from kokbok import model
 
 def main():
-    with MySQLdb.connect(**conf.db) as cursor:
-        with open('kokbok.sql') as x:
-            for line in x.read().split(';\n'):
-                if len(line.strip()) > 0 :
-                    cursor.execute(line)
+    ingredient = model.Ingredient("Test", 1, 1, 1, 1, 1, 1, 1)
+    ingredient.save()
+    # with MySQLdb.connect(**conf.db) as cursor:
+    #     with open('kokbok.sql') as x:
+    #         for line in x.read().split(';\n'):
+    #             if len(line.strip()) > 0 :
+    #                 cursor.execute(line)
 
-        cursor.execute("Select * from recipe")
-        cursor.execute("Select * from recipe")
-        cursor.execute("Select * from recipe")
-        print(cursor.fetchall())
+    #     cursor.execute("Select * from Recipe")
+    #     cursor.execute("Select * from Recipe")
+    #     cursor.execute("Select * from Recipe")
+    #     print(cursor.fetchall())
                     
 if __name__ == '__main__':
-    model.hello()
     main()
+    
 
 
 

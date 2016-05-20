@@ -12,6 +12,8 @@ from kokbok import model
 def main():
     ingredient = model.Ingredient("Test", 1, 1, 1, 1, 1, 1, 1)
     ingredient.save()
+
+    recipe = model.Recipe("TestRecipe", 1, 1, 1, 1, 1, 1)
     # with MySQLdb.connect(**conf.db) as cursor:
     #     with open('kokbok.sql') as x:
     #         for line in x.read().split(';\n'):

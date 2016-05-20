@@ -14,7 +14,7 @@ class Ingredient:
         self.gramsperunit = gramsperunit
         self._id = _id
 
-    def save(self):
+     def save(self):
         if self._id == None:
             query = """INSERT INTO Ingredient (Name, Price, Energy, Fat, Protein,
             Carbohydrate, GramsPerMilliliter, GramsPerUnit)
@@ -23,7 +23,27 @@ class Ingredient:
                         self.carbohydrate, self.gramspermilliliter, self.gramsperunit)
             print(execute_one(query, arglist))
 
-def execute_one(query, arglist):
+class Recipe:
+    def __init__(self, title, cook_time_prep, cook_time_cook, dimension, description, version, _id = None):
+        self.title = title
+        self.cook_time_prep = cook_time_prep
+        self.cook_time_cook = cook_time_cook
+        self.dimension = dimension
+        self.description = description
+        self.version = version
+        self._id = _id
+
+    def save(self):
+        if self._id == None:
+            query = """INSERT INTO Recipe (Title, CookingTimePrepMinutes,
+            CookingTimeCookMinutes, Dimension, Description, Description,
+            Version)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)"""
+            arglist = (self.title, self.cook_time_prep, self.cook_time_cook,
+                       dimension, description, version)
+            print(execute_one(query, arglist))
+            
+tdef execute_one(query, arglist):
     with MySQLdb.connect(**conf.db) as cursor:
         cursor.execute(query, arglist)
         return cursor.fetchall()

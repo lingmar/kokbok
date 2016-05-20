@@ -12,9 +12,16 @@ from kokbok import model
 def main():
     ingredient = model.Ingredient("Test", 1, 1, 1, 1, 1, 1, 1)
     ingredient.save()
+    print(ingredient._id)
 
-    recipe = model.Recipe("TestRecipe", 1, 1, 1, 1, 1)
+    recipe = model.Recipe("TestRecipe", 1, 1, 1, 1, 1, 1, 1, 1,1, 1)
     recipe.save()
+    print(recipe._id)
+
+    ingredient_list = model.IngredientList([ingredient], "hej")
+    ingredient_list.save()
+    print(ingredient_list._id)
+    print(ingredient_list)
 
     # with MySQLdb.connect(**conf.db) as cursor:
     #     with open('kokbok.sql') as x:

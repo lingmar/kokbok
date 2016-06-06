@@ -4,7 +4,7 @@ from kokbok import conf
 class Ingredient:
 
     def __init__(self, name, price, energy, fat, protein,
-                 carbohydrate, gramspermilliliter, gramsperunit, _id=None):
+                 carbohydrate, gramspermilliliter, gramsperunit):
         """
         Describe an ingredient
 
@@ -35,7 +35,7 @@ class Ingredient:
         self.carbohydrate = carbohydrate
         self.gramspermilliliter = gramspermilliliter
         self.gramsperunit = gramsperunit
-        self._id = _id
+        self._id = None
 
     def save(self):
         if self._id == None:
@@ -45,6 +45,22 @@ class Ingredient:
             arglist = (self.name, self.price, self.energy, self.fat, self.protein,
                         self.carbohydrate, self.gramspermilliliter, self.gramsperunit)
             self._id = execute_one(query, arglist)
+
+    @classmethod
+    def by_id(cls, _id):
+        query = """SELECT * FROM Ingredient WHERE ID = %s"""
+        with MySQLdb.connect(**conf.db) as cursor:
+            cursor.execute(query, [_id])
+            ingredient = cursor.fetchone()
+        strip_id = ingredient[1:]
+        ing = cls(*strip_id)
+        ing._id = ingredient[0]
+        return ing
+
+    def __str__(self):
+        s = ("%s %d") % (self.name, int(self._id))
+        return s
+
 
 class Recipe:
     def __init__(self, title, cook_time_prep, cook_time_cook,

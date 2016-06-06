@@ -2,8 +2,31 @@ import MySQLdb
 from kokbok import conf
 
 class Ingredient:
+
     def __init__(self, name, price, energy, fat, protein,
                  carbohydrate, gramspermilliliter, gramsperunit, _id=None):
+        """
+        Describe an ingredient
+
+        Keyword arguments
+
+        name -- the canonical name of the ingredient
+
+        price -- the current price for the ingredient
+
+        energy -- the amount of energy (in kcal)
+
+        fat -- the amount of fat in grammes per 100g
+
+        protein -- the amount of protein in grammes per 100g
+
+        carbohydrate -- the amount of carbohydrates in grammes per 100g
+
+        gramspermilliliter -- the number of grammes one ml of the ingredient weighs
+
+        gramsperunit -- the weight in grammes of one standard unit (e.g. one can of tomatoes, an egg)
+    """
+
         self.name = name
         self.price = price
         self.energy = energy

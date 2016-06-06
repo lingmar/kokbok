@@ -16,9 +16,8 @@ Modules:
 .. automodule:: kokbok.model
   :members:
   :undoc-members:
+  :special-members:
 
-
-Indices and tables
 ==================
 
 * :ref:`genindex`

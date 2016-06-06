@@ -3,3 +3,6 @@ init:
 
 test:
 	nosetests
+
+doc:
+	 sphinx-build -b html . ./_build

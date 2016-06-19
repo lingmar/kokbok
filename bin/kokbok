@@ -18,7 +18,7 @@ def main():
     
     recipe = model.Recipe("TestRecipe", 1, 1, 1, 1, 1, 1, 1, 1,1, 1)
     recipe.save()
-    print(recipe._id)
+    print(recipe)
 
     ingredient_list = model.IngredientList([ingredient], "hej")
     ingredient_list.save()

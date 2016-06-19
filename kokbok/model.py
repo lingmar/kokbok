@@ -138,6 +138,10 @@ class Recipe():
 
             self._id = execute_one(query, arglist)
 
+    def __str__(self):
+        s = ("%s %d") % (self.title, int(self._id))
+        return s
+
 
 class IngredientList:
 

@@ -1,7 +1,47 @@
 import MySQLdb
+
 from kokbok import conf
 
-class Ingredient:
+from abc import ABCMeta, abstractmethod
+
+
+class CookBookObject(metaclass=ABCMeta):
+
+    @abstractmethod
+    def save(self) -> None:
+        """
+        Save the current object to the database. Add it if not present,
+        otherwise update it.
+        """
+        return NotImplemented
+
+    @classmethod
+    @abstractmethod
+    def by_id(self):
+        """
+        Return a new object of the current type by its ID. Raises an
+        Exception if ID is not present.
+        """
+        return NotImplemented
+
+    @abstractmethod
+    def delete(self) -> None:
+        """
+        Permanently delete the current object from the database (if
+        present). Otherwise do nothing.
+        """
+        return NotImplemented
+
+    @abstractmethod
+    def refresh(self) -> None:
+        """
+        Refresh the current object from the database, overwriting any
+        altered values. Raises an Exception ??? if no longer present.
+        """
+        return NotImplemented
+
+
+class Ingredient(CookBookObject):
 
     def __init__(self, name, price, energy, fat, protein,
                  carbohydrate, gramspermilliliter, gramsperunit):
@@ -61,8 +101,14 @@ class Ingredient:
         s = ("%s %d") % (self.name, int(self._id))
         return s
 
+    def delete(self):
+        pass
 
-class Recipe:
+    def refresh(self):
+        pass
+
+
+class Recipe():
     def __init__(self, title, cook_time_prep, cook_time_cook,
                  servings, description, version, ingredient_lists,
                  author, instructions, comments, pictures, _id = None):
@@ -125,7 +171,6 @@ class Recipe:
         s = ("%s %d") % (self.title, int(self._id))
         return s
 
-    
 
 class IngredientList:
 
@@ -166,6 +211,7 @@ class IngredientList:
              "%s") % (self.title, str(self.ingredients))
 
         return s
+
 
 def execute_one(query, arglist):
     with MySQLdb.connect(**conf.db) as cursor:

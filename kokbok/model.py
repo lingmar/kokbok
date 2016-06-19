@@ -64,13 +64,42 @@ class Ingredient:
 
 class Recipe:
     def __init__(self, title, cook_time_prep, cook_time_cook,
-                 dimension, description, version, ingredient_lists,
-                 author, instruction, comments, pictures, _id = None):
+                 servings, description, version, ingredient_lists,
+                 author, instructions, comments, pictures, _id = None):
+        """
+        Describe a recipe
 
+        Keyword arguments
+
+        title -- the title of the recipe
+
+        cook_time_prep -- the time for preparing the recipe in minutes
+
+        cook_time_cook -- the time for cooking the recipe in minutes
+
+        servings -- the estimated number of servings
+
+        description -- a brief description of the recipe
+
+        version -- the version of the recipe
+
+        ingredient_lists -- the list of ingredient lists
+
+        author -- the author of the recipe
+
+        instructions -- the list of instructions for the recipe
+
+        comments -- the list of comments of the recipe
+
+        pictures -- a list of pictures of the recipe 
+
+        """
+
+        
         self.title = title
         self.cook_time_prep = cook_time_prep
         self.cook_time_cook = cook_time_cook
-        self.dimension = dimension
+        self.servings = servings
         self.description = description
         self.version = version
         self._id = _id
@@ -78,17 +107,17 @@ class Recipe:
         self.ingredient_lists = ingredient_lists
 
         self.author = author
-        self.instruction = instruction
+        self.instructions = instructions
         self.comments = comments
         self.pictures = pictures
-
+        
     def save(self):
         if self._id == None:
             query = """INSERT INTO Recipe (Title, CookingTimePrepMinutes,
-            CookingTimeCookMinutes, Dimension, Description, Version)
+            CookingTimeCookMinutes, Servings, Description, Version)
             VALUES (%s, %s, %s, %s, %s, %s)"""
             arglist = (self.title, self.cook_time_prep, self.cook_time_cook,
-                       self.dimension, self.description, self.version)
+                       self.servings, self.description, self.version)
 
             self._id = execute_one(query, arglist)
 
@@ -101,6 +130,16 @@ class Recipe:
 class IngredientList:
 
     def __init__(self, ingredients, title, _id=None):
+        """
+        Describe an ingredient list
+
+        Keyword arguments
+
+        ingredients -- the list of ingredients
+
+        title -- the title of the ingredient list
+
+        """
         self.ingredients = ingredients
         self.title = title
         self._id = _id

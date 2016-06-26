@@ -28,7 +28,7 @@ CREATE TABLE Recipe (
        Title varchar(256) NOT NULL,
        CookingTimePrepMinutes int,
        CookingTimeCookMinutes int,
-       Dimension int,
+       Servings int,
        Description varchar(65000),
        Version int
 );
@@ -41,8 +41,8 @@ CREATE TABLE Author (
 CREATE TABLE Author_Recipe (
        AuthorID int,
        RecipeID int,
-       FOREIGN KEY (AuthorID) REFERENCES Author(ID),
-       FOREIGN KEY (RecipeID) REFERENCES Recipe(ID),
+       FOREIGN KEY (AuthorID) REFERENCES Author(ID) ON DELETE CASCADE,
+       FOREIGN KEY (RecipeID) REFERENCES Recipe(ID) ON DELETE CASCADE,
        PRIMARY KEY(AuthorID, RecipeID)
 );
 
@@ -55,16 +55,16 @@ CREATE TABLE Comment (
 CREATE TABLE Comment_Author (
        AuthorID int,
        CommentID int,
-       FOREIGN KEY (AuthorID) REFERENCES Author(ID),
-       FOREIGN KEY (CommentID) REFERENCES Comment(ID),
+       FOREIGN KEY (AuthorID) REFERENCES Author(ID) ON DELETE CASCADE,
+       FOREIGN KEY (CommentID) REFERENCES Comment(ID) ON DELETE CASCADE,
        PRIMARY KEY(AuthorID, CommentID)
 );
 
 CREATE TABLE Recipe_Comment (
        RecipeID int,
        CommentID int,
-       FOREIGN KEY (RecipeID) REFERENCES Recipe(ID),
-       FOREIGN KEY (CommentID) REFERENCES Comment(ID),
+       FOREIGN KEY (RecipeID) REFERENCES Recipe(ID) ON DELETE CASCADE,
+       FOREIGN KEY (CommentID) REFERENCES Comment(ID) ON DELETE CASCADE,
        PRIMARY KEY(RecipeID, CommentID)
 );
 
@@ -92,54 +92,54 @@ CREATE TABLE Ingredient (
 );
 
 CREATE TABLE IngredientList_Ingredient (
-	IngredientListID int,
-	IngredientID int,
-    PrepNotes varchar(2048),
-    Magnitude int UNSIGNED,
-    Unit enum('g', 'ml', 'pcs'),
-    FOREIGN KEY (IngredientListID) REFERENCES IngredientList(ID),
-	FOREIGN KEY (IngredientID) REFERENCES Ingredient(ID),
-	PRIMARY KEY(IngredientListID, IngredientID)
+       IngredientListID int,
+       IngredientID int,
+       PrepNotes varchar(2048),
+       Magnitude int UNSIGNED,
+       Unit enum('g', 'ml', 'pcs'),
+       FOREIGN KEY (IngredientListID) REFERENCES IngredientList(ID) ON DELETE CASCADE,
+       FOREIGN KEY (IngredientID) REFERENCES Ingredient(ID),
+       PRIMARY KEY(IngredientListID, IngredientID)
 );
 
 CREATE TABLE IngredientCategory (
-	ID int PRIMARY KEY AUTO_INCREMENT,
-    Name varchar(256)
+       ID int PRIMARY KEY AUTO_INCREMENT,
+       Name varchar(256)
 );
 
 CREATE TABLE Ingredient_IngredientCategory (
-	IngredientID int,
-    IngredientCategoryID int,
-    FOREIGN KEY (IngredientID) REFERENCES Ingredient(ID),
-	FOREIGN KEY (IngredientCategoryID) REFERENCES IngredientCategory(ID),
-	PRIMARY KEY(IngredientID, IngredientCategoryID)
+       IngredientID int,
+       IngredientCategoryID int,
+       FOREIGN KEY (IngredientID) REFERENCES Ingredient(ID) ON DELETE CASCADE,
+       FOREIGN KEY (IngredientCategoryID) REFERENCES IngredientCategory(ID) ON DELETE CASCADE,
+       PRIMARY KEY(IngredientID, IngredientCategoryID)
 );
 
 CREATE TABLE Instruction (
-	ID int PRIMARY KEY AUTO_INCREMENT,
-    Text varchar(65000)
+       ID int PRIMARY KEY AUTO_INCREMENT,
+       Text varchar(65000)
 );
 
 CREATE TABLE Recipe_Instruction (
-	RecipeID int,
-    InstructionID int,
-    Step int,
-    FOREIGN KEY (RecipeID) REFERENCES Recipe(ID),
-	FOREIGN KEY (InstructionID) REFERENCES Instruction(ID),
-	PRIMARY KEY(RecipeID, InstructionID)
+       RecipeID int,
+       InstructionID int,
+       Step int,
+       FOREIGN KEY (RecipeID) REFERENCES Recipe(ID) ON DELETE CASCADE,
+       FOREIGN KEY (InstructionID) REFERENCES Instruction(ID) ON DELETE CASCADE,
+       PRIMARY KEY(RecipeID, InstructionID)
 );
 
 CREATE TABLE Picture (
-	ID int PRIMARY KEY AUTO_INCREMENT,
-    Filename varchar(256) UNIQUE NOT NULL
+       ID int PRIMARY KEY AUTO_INCREMENT,
+       Filename varchar(256) UNIQUE NOT NULL
 );
 
 CREATE TABLE Recipe_Picture (
        RecipeID int,
        PictureID int,
-       FOREIGN KEY (RecipeID) REFERENCES Recipe(ID),
-        FOREIGN KEY (PictureID) REFERENCES Picture(ID),
-        PRIMARY KEY(RecipeID, PictureID)
+       FOREIGN KEY (RecipeID) REFERENCES Recipe(ID) ON DELETE CASCADE,
+       FOREIGN KEY (PictureID) REFERENCES Picture(ID) ON DELETE CASCADE,
+       PRIMARY KEY(RecipeID, PictureID)
 );
 
 COMMIT;

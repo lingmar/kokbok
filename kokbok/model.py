@@ -1,4 +1,5 @@
 import MySQLdb
+from _mysql_exceptions import IntegrityError
 
 from kokbok import conf
 
@@ -102,7 +103,12 @@ class Ingredient(CookBookObject):
         return s
 
     def delete(self):
-        pass
+        query = "DELETE FROM Ingredient WHERE ID = %s"
+        arglist = [self._id]
+        try:
+            execute_one(query, arglist)
+        except IntegrityError:
+            raise IngredientInUseException()
 
     def refresh(self):
         pass
@@ -172,6 +178,14 @@ class Recipe():
         s = ("%s %d") % (self.title, int(self._id))
         return s
 
+    def delete(self):
+        query = "DELETE FROM Ingredient WHERE ID = %s"
+        arglist = [self._id]
+        try:
+            execute_one(query, arglist)
+        except IntegrityError:
+            raise IngredientInUseException()
+
 CookBookObject.register(Recipe)
 
 class IngredientList:
@@ -210,8 +224,7 @@ class IngredientList:
 
     def __str__(self):
         s = ("Ingredients: %s\n"
-             "%s") % (self.title, str(self.ingredients))
-
+             "%s") % (self.title, "\n".join([str(x) for x in self.ingredients]))
         return s
 
 
@@ -229,3 +242,6 @@ def execute_many(query, arglist):
     with MySQLdb.connect(**conf.db) as cursor:
         cursor.execute_many(query, arglist)
         return cursor.fetchone()
+
+class IngredientInUseException(Exception):
+    pass

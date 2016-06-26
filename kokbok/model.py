@@ -107,6 +107,7 @@ class Ingredient(CookBookObject):
     def refresh(self):
         pass
 
+CookBookObject.register(Ingredient)
 
 class Recipe():
     def __init__(self, title, cook_time_prep, cook_time_cook,
@@ -137,11 +138,11 @@ class Recipe():
 
         comments -- the list of comments of the recipe
 
-        pictures -- a list of pictures of the recipe 
+        pictures -- a list of pictures of the recipe
 
         """
 
-        
+
         self.title = title
         self.cook_time_prep = cook_time_prep
         self.cook_time_cook = cook_time_cook
@@ -156,7 +157,7 @@ class Recipe():
         self.instructions = instructions
         self.comments = comments
         self.pictures = pictures
-        
+
     def save(self):
         if self._id == None:
             query = """INSERT INTO Recipe (Title, CookingTimePrepMinutes,
@@ -171,6 +172,7 @@ class Recipe():
         s = ("%s %d") % (self.title, int(self._id))
         return s
 
+CookBookObject.register(Recipe)
 
 class IngredientList:
 
@@ -211,6 +213,9 @@ class IngredientList:
              "%s") % (self.title, str(self.ingredients))
 
         return s
+
+
+CookBookObject.register(IngredientList)
 
 
 def execute_one(query, arglist):

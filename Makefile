@@ -4,7 +4,7 @@ init:
 	pip install -r requirements.txt
 
 test:
-	nosetests
+	py.test
 
 doc:
 	 sphinx-build -b html . ./_build

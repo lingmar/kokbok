@@ -1,0 +1,2 @@
+[run]
+omit = kokbok/test/*, */__init__.py, */conf.py

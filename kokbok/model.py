@@ -295,15 +295,15 @@ class IngredientList:
                 
 CookBookObject.register(IngredientList)
 
-def execute_one(query, arglist):
-    with MySQLdb.connect(**conf.db) as cursor:
+def execute_one(query, arglist, dbconf=conf.db):
+    with MySQLdb.connect(**dbconf) as cursor:
         cursor.execute(query, arglist)
 
         cursor.execute("SELECT LAST_INSERT_ID()")
         return cursor.fetchone()[0]
 
-def execute_many(query, arglist):
-    with MySQLdb.connect(**conf.db) as cursor:
+def execute_many(query, arglist, dbconf=conf.db):
+    with MySQLdb.connect(**dbconf) as cursor:
         cursor.execute_many(query, arglist)
         return cursor.fetchone()
 

@@ -20,7 +20,7 @@ def main():
     #                 cursor.execute("Select * from Recipe")
     #                 print(cursor.fetchall())
 
-    
+
     ingredient = model.Ingredient("Test", 1, 2, 3, 4, 5, 6, 7)
     ingredient.save()
     print(ingredient._id)
@@ -29,7 +29,7 @@ def main():
     ingredient2.save()
 
     print(model.Ingredient.by_id(ingredient._id))
-    
+
     recipe = model.Recipe("TestRecipe", 1, 1, 1, 1, 1, 1, 1, 1,1, 1)
     recipe.save()
     print(recipe)

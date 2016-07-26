@@ -20,24 +20,26 @@ def main():
     #                 cursor.execute("Select * from Recipe")
     #                 print(cursor.fetchall())
 
-
-    ingredient = model.Ingredient("Test", 1, 2, 3, 4, 5, 6, 7)
+    ingredient = model.Ingredient("TestIngredient", 1, 2, 3, 4, 5, 6, 7)
     ingredient.save()
-    print(ingredient._id)
+    
+    ingredient_list = model.IngredientList([ingredient], "TestIngredientList", None)
+    ingredient_list.save()
+    
+    recipe = model.Recipe("TestRecipe", 1, 2, 3, "Description", 1, [ingredient_list], "Author", "Instructions", "Comments", "Pictures")
 
-    ingredient2 = model.Ingredient("Test2", 1, 2, 3, 4, 5, 6, 7)
-    ingredient2.save()
-
-    print(model.Ingredient.by_id(ingredient._id))
-
-    recipe = model.Recipe("TestRecipe", 1, 1, 1, 1, 1, 1, 1, 1,1, 1)
     recipe.save()
     print(recipe)
+    print(recipe.by_id(recipe._id))
 
-    ingredient_list = model.IngredientList([ingredient, ingredient2], "hej")
-    ingredient_list.save()
-    print(ingredient_list._id)
-    print(ingredient_list)
+    # This raises an exception (probably)
+    # print(ingredient.by_id(398405))
+    print(recipe.by_id(28098))
+    
+    # ingredient_list = model.IngredientList([ingredient, ingredient2], "hej")
+    # ingredient_list.save()
+    # print(ingredient_list._id)
+    # print(ingredient_list)
 
     # Remove ingredient from db
 #    ingredient.delete()

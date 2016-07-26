@@ -48,3 +48,6 @@ coverage.xml
 # Configuration file
 /kokbok/conf.py
 /_build/
+
+# Emacs temp files
+.#*

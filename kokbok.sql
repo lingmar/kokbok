@@ -12,7 +12,6 @@ DROP TABLE IF EXISTS Recipe_Instruction;
 DROP TABLE IF EXISTS Recipe_Picture;
 DROP TABLE IF EXISTS Ingredient_IngredientCategory;
 
-
 DROP TABLE IF EXISTS Recipe;
 DROP TABLE IF EXISTS Author;
 DROP TABLE IF EXISTS Comment;
@@ -76,7 +75,9 @@ CREATE TABLE RecipeCategory (
 
 CREATE TABLE IngredientList (
        ID int PRIMARY KEY auto_increment,
-       Title varchar(256)
+       Title varchar(256),
+       RecipeID int,
+       FOREIGN KEY (RecipeID) REFERENCES Recipe(ID) ON DELETE CASCADE
 );
 
 CREATE TABLE Ingredient (

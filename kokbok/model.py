@@ -136,6 +136,12 @@ class Ingredient(CookBookObject):
         return s
 
     def delete(self):
+        """FIXME! briefly describe function
+
+        :returns:
+        :rtype:
+
+        """
         query = "DELETE FROM Ingredient WHERE ID = %s"
         arglist = [self._id]
         try:
@@ -180,6 +186,23 @@ class Recipe():
         comments -- the list of comments of the recipe
 
         pictures -- a list of pictures of the recipe
+
+
+        Examples:
+
+        .. code-block:: python
+           :dedent: 1
+
+            bread = Recipe(
+            title="bread", servings=4,
+            cook_time_prep=30,
+            cook_time_cook=30,
+            ingredients=[{'title': '',
+                          'ingredients': [{'unit': Unit.DL, 'quantity': 17,
+                                          'ingredient': Ingredient.from_name("wheat flour")}]}],
+            author=Author("Albin Stjerna"),
+            instructions=["Blanda mjöl", "sätt på ugnen", "klart!"]
+            )
 
         """
 

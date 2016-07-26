@@ -1,4 +1,4 @@
-from kokbok.model import Ingredient, CookBookObject
+from kokbok.model import Ingredient, CookBookObject, NotFoundException
 import pytest
 
 SETUP_SQL = """
@@ -157,7 +157,8 @@ def test_db(request):
     dbname = "testdb"
     dbquery = SETUP_SQL % {'dbname' : dbname}
 
-    dbconf = {"host" : "localhost", "user" : "root", "db" : "KOKBOK"}
+    #dbconf = {"host" : "localhost", "user" : "root", "db" : "KOKBOK"}
+    dbconf = {"host" : "127.0.0.1", "port" : 3305, "user" : "root", "passwd" : "root", "db" : "KOKBOK"}
 
     with MySQLdb.connect(**dbconf) as cursor:
         for command in dbquery.split(';\n'):
@@ -175,8 +176,52 @@ def test_db(request):
     return dbconf
 
 def test_ingredient_save(test_db):
-    assert True
+    name = "name"
+    price = 1
+    energy = 2
+    fat = 3
+    protein = 4
+    carbohydrate = 5
+    gramspermilliliter = 6
+    gramsperunit = 7 
 
+    ingredient = Ingredient(name, price, energy, fat, protein, carbohydrate, gramspermilliliter, gramsperunit)
 
+    ingredient.save()
+    same_ingredient = Ingredient.by_id(ingredient._id)
+
+    assert same_ingredient.name == name
+    assert same_ingredient.price == price
+    assert same_ingredient.energy == energy
+    assert same_ingredient.fat == fat
+    assert same_ingredient.protein == protein
+    assert same_ingredient.carbohydrate == carbohydrate
+    assert same_ingredient.gramspermilliliter == gramspermilliliter
+    assert same_ingredient.gramsperunit == gramsperunit
+
+    # Behaviour of __eq__-method unknown...    
+    assert ingredient.__eq__(same_ingredient)
+
+def test_ingredient_delete(test_db):
+    name = "name"
+    price = 1
+    energy = 2
+    fat = 3
+    protein = 4
+    carbohydrate = 5
+    gramspermilliliter = 6
+    gramsperunit = 7 
+
+    ingredient = Ingredient(name, price, energy, fat, protein, carbohydrate, gramspermilliliter, gramsperunit)
+
+    ingredient.save()
+    ingredient.delete()
+    try:
+        Ingredient.by_id(ingredient._id)
+        assert False
+    except NotFoundException:
+        assert True
+        
+    
 def test_is_subclass():
     assert issubclass(Ingredient, CookBookObject)

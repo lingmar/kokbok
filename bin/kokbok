@@ -32,6 +32,10 @@ def main():
     print(recipe)
     print(recipe.by_id(recipe._id))
 
+    # This raises an exception (probably)
+    # print(ingredient.by_id(398405))
+    print(recipe.by_id(28098))
+    
     # ingredient_list = model.IngredientList([ingredient, ingredient2], "hej")
     # ingredient_list.save()
     # print(ingredient_list._id)

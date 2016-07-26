@@ -41,7 +41,14 @@ class CookBookObject(metaclass=ABCMeta):
         """
         return NotImplemented
 
+    
+    # @abstractmethod
+    # def __eq__(self, other):
+    #     """
+        
+    #     """
 
+    
 class Ingredient(CookBookObject):
 
     def __init__(self, name, price, energy, fat, protein,
@@ -93,6 +100,10 @@ class Ingredient(CookBookObject):
         with MySQLdb.connect(**conf.db) as cursor:
             cursor.execute(query, [_id])
             ingredient = cursor.fetchone()
+
+        if ingredient is None:
+            raise NotFoundException
+        
         strip_id = ingredient[1:]
         ing = cls(*strip_id)
         ing._id = ingredient[0]
@@ -195,15 +206,20 @@ class Recipe():
         WHERE Recipe.ID = %s"""
 
         with MySQLdb.connect(**conf.db) as cursor:
-            # Fetch from Recipe table
+            # Fetch from Recipe table, strip off ID
             cursor.execute(recipe_query, [_id])
-            recipe = cursor.fetchone()[1:]
+            result = cursor.fetchone()
 
-            # Fetch ingredient lists
+            if result is None:
+                raise NotFoundException
+            
+            recipe = result[1:]
+
+            # Fetch ID:s of ingredient lists 
             cursor.execute(ingredient_list_query, [_id])
             ingredient_lists_ids = cursor.fetchone()
 
-            # Fetch instructions
+            # Fetch ID:s of instructions
             cursor.execute(instruction_query, [_id])
             instructions_ids = cursor.fetchone()
             
@@ -214,7 +230,7 @@ class Recipe():
         instructions = None
         comments = None
         pictures = None
-    
+        
         return cls(*recipe, ingredient_lists, author, instructions, comments, pictures, _id)
         
     def delete(self):
@@ -308,4 +324,7 @@ def execute_many(query, arglist, dbconf=conf.db):
         return cursor.fetchone()
 
 class IngredientInUseException(Exception):
+    pass
+
+class NotFoundException(Exception):
     pass

@@ -41,11 +41,35 @@ class CookBookObject(metaclass=ABCMeta):
         """
         return NotImplemented
 
+    def execute_one(self, query, arglist, dbconf=None):
+        if not dbconf:
+            dbconf = self.dbconf
+        with MySQLdb.connect(**dbconf) as cursor:
+            cursor.execute(query, arglist)
+
+            cursor.execute("SELECT LAST_INSERT_ID()")
+            return cursor.fetchone()[0]
+
+    def execute_many(self, query, arglist, dbconf=None):
+        if not dbconf:
+            dbconf = self.dbconf
+        with MySQLdb.connect(**dbconf) as cursor:
+            cursor.execute_many(query, arglist)
+            return cursor.fetchone()
+
+    def __init__(self, dbconf):
+        """
+        dbconf -- the expected configuration for MySQLdb.connect.
+        Probably conf.db.
+        """
+        self.dbconf = dbconf
+
 
 class Ingredient(CookBookObject):
 
     def __init__(self, name, price, energy, fat, protein,
-                 carbohydrate, gramspermilliliter, gramsperunit):
+                 carbohydrate, gramspermilliliter, gramsperunit,
+                 dbconf=conf.db):
         """
         Describe an ingredient
 
@@ -63,10 +87,14 @@ class Ingredient(CookBookObject):
 
         carbohydrate -- the amount of carbohydrates in grammes per 100g
 
-        gramspermilliliter -- the number of grammes one ml of the ingredient weighs
+        gramspermilliliter -- the number of grammes one ml of the
+        ingredient weighs
 
-        gramsperunit -- the weight in grammes of one standard unit (e.g. one can of tomatoes, an egg)
-    """
+        gramsperunit -- the weight in grammes of one standard unit
+        (e.g. one can of tomatoes, an egg)
+        """
+
+        super(Ingredient, self).__init__(dbconf)
 
         self.name = name
         self.price = price
@@ -79,13 +107,14 @@ class Ingredient(CookBookObject):
         self._id = None
 
     def save(self):
-        if self._id == None:
+        if self._id is None:
             query = """INSERT INTO Ingredient (Name, Price, Energy, Fat, Protein,
             Carbohydrate, GramsPerMilliliter, GramsPerUnit)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)"""
-            arglist = (self.name, self.price, self.energy, self.fat, self.protein,
-                        self.carbohydrate, self.gramspermilliliter, self.gramsperunit)
-            self._id = execute_one(query, arglist)
+            arglist = (self.name, self.price, self.energy, self.fat,
+                       self.protein, self.carbohydrate,
+                       self.gramspermilliliter, self.gramsperunit)
+            self._id = self.execute_one(query, arglist)
 
     @classmethod
     def by_id(cls, _id):
@@ -106,7 +135,7 @@ class Ingredient(CookBookObject):
         query = "DELETE FROM Ingredient WHERE ID = %s"
         arglist = [self._id]
         try:
-            execute_one(query, arglist)
+            self.execute_one(query, arglist)
         except IntegrityError:
             raise IngredientInUseException()
 
@@ -115,10 +144,12 @@ class Ingredient(CookBookObject):
 
 CookBookObject.register(Ingredient)
 
+
 class Recipe():
     def __init__(self, title, cook_time_prep, cook_time_cook,
                  servings, description, version, ingredient_lists,
-                 author, instructions, comments, pictures, _id = None):
+                 author, instructions, comments, pictures, id=None,
+                 dbconf=conf.db):
         """
         Describe a recipe
 
@@ -148,6 +179,7 @@ class Recipe():
 
         """
 
+        super(Recipe, self).__init__(dbconf)
 
         self.title = title
         self.cook_time_prep = cook_time_prep
@@ -155,7 +187,7 @@ class Recipe():
         self.servings = servings
         self.description = description
         self.version = version
-        self._id = _id
+        self._id = id
 
         self.ingredient_lists = ingredient_lists
 
@@ -165,14 +197,14 @@ class Recipe():
         self.pictures = pictures
 
     def save(self):
-        if self._id == None:
+        if self._id is None:
             query = """INSERT INTO Recipe (Title, CookingTimePrepMinutes,
             CookingTimeCookMinutes, Servings, Description, Version)
             VALUES (%s, %s, %s, %s, %s, %s)"""
             arglist = (self.title, self.cook_time_prep, self.cook_time_cook,
                        self.servings, self.description, self.version)
 
-            self._id = execute_one(query, arglist)
+            self._id = self.execute_one(query, arglist)
 
     def __str__(self):
         s = ("%s %d") % (self.title, int(self._id))
@@ -182,15 +214,16 @@ class Recipe():
         query = "DELETE FROM Ingredient WHERE ID = %s"
         arglist = [self._id]
         try:
-            execute_one(query, arglist)
+            self.execute_one(query, arglist)
         except IntegrityError:
             raise IngredientInUseException()
 
 CookBookObject.register(Recipe)
 
+
 class IngredientList:
 
-    def __init__(self, ingredients, title, _id=None):
+    def __init__(self, ingredients, title, _id=None, dbconf=conf.db):
         """
         Describe an ingredient list
 
@@ -201,16 +234,18 @@ class IngredientList:
         title -- the title of the ingredient list
 
         """
+
+        super(IngredientList, self).__init__(dbconf)
         self.ingredients = ingredients
         self.title = title
         self._id = _id
 
     def save(self):
-        if self._id == None:
+        if self._id is None:
             query = """INSERT INTO IngredientList (Title)
             VALUES (%s) """
 
-            self._id = execute_one(query, [self.title])
+            self._id = self.execute_one(query, [self.title])
 
             for ingredient in self.ingredients:
                 query = """INSERT INTO IngredientList_Ingredient
@@ -220,28 +255,17 @@ class IngredientList:
 
                 arglist = [self._id, ingredient._id]
 
-                execute_one(query, arglist)
+                self.execute_one(query, arglist)
 
     def __str__(self):
         s = ("Ingredients: %s\n"
-             "%s") % (self.title, "\n".join([str(x) for x in self.ingredients]))
+             "%s") % (self.title, "\n".join(
+                 [str(x) for x in self.ingredients]))
         return s
 
 
 CookBookObject.register(IngredientList)
 
-
-def execute_one(query, arglist, dbconf=conf.db):
-    with MySQLdb.connect(**dbconf) as cursor:
-        cursor.execute(query, arglist)
-
-        cursor.execute("SELECT LAST_INSERT_ID()")
-        return cursor.fetchone()[0]
-
-def execute_many(query, arglist, dbconf=conf.db):
-    with MySQLdb.connect(**dbconf) as cursor:
-        cursor.execute_many(query, arglist)
-        return cursor.fetchone()
 
 class IngredientInUseException(Exception):
     pass

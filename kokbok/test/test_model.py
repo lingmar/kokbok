@@ -1,4 +1,6 @@
 from kokbok.model import Ingredient, CookBookObject
+import kokbok.conf
+
 import pytest
 
 SETUP_SQL = """
@@ -149,33 +151,45 @@ CREATE TABLE Recipe_Picture (
 COMMIT;
 """
 
+TEST_DB_NAME = "KOKBOK_TEST"
+TEST_DB_CONF = kokbok.conf.db.copy()
+TEST_DB_CONF['db'] = TEST_DB_NAME
+
 
 @pytest.fixture(scope="function")
 def test_db(request):
     import MySQLdb
 
-    dbname = "testdb"
-    dbquery = SETUP_SQL % {'dbname' : dbname}
+    conf = TEST_DB_CONF.copy()
+    conf.pop('db')
 
-    dbconf = {"host" : "localhost", "user" : "root", "db" : "KOKBOK"}
+    dbquery = SETUP_SQL % {'dbname': TEST_DB_NAME}
 
-    with MySQLdb.connect(**dbconf) as cursor:
+    with MySQLdb.connect(**conf) as cursor:
         for command in dbquery.split(';\n'):
             if len(command.strip()) > 0:
                 cursor.execute(command)
 
     def teardown_db():
-        with MySQLdb.connect(**dbconf) as cursor:
-            cursor.execute("DROP DATABASE IF EXISTS %s" % dbname)
+        with MySQLdb.connect(**TEST_DB_CONF) as cursor:
+            cursor.execute("DROP DATABASE IF EXISTS %s" % TEST_DB_NAME)
 
     request.addfinalizer(teardown_db)
 
-    dbconf['db'] = dbname
-
-    return dbconf
 
 def test_ingredient_save(test_db):
-    assert True
+    ing = Ingredient(name="foo",
+                     price=123,
+                     energy=12,
+                     fat=123,
+                     protein=123,
+                     carbohydrate=123,
+                     gramspermilliliter=123,
+                     gramsperunit=123,
+                     dbconf=TEST_DB_CONF)
+
+    ing.save()
+    assert ing._id is not None
 
 
 def test_is_subclass():

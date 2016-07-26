@@ -18,7 +18,6 @@ DROP TABLE IF EXISTS Recipe_Instruction;
 DROP TABLE IF EXISTS Recipe_Picture;
 DROP TABLE IF EXISTS Ingredient_IngredientCategory;
 
-
 DROP TABLE IF EXISTS Recipe;
 DROP TABLE IF EXISTS Author;
 DROP TABLE IF EXISTS Comment;
@@ -41,7 +40,7 @@ CREATE TABLE Recipe (
 
 CREATE TABLE Author (
        ID int PRIMARY KEY AUTO_INCREMENT,
-       Name varchar(512)
+       Name varchar(512) UNIQUE NOT NULL
 );
 
 CREATE TABLE Author_Recipe (

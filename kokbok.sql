@@ -34,7 +34,7 @@ CREATE TABLE Recipe (
 
 CREATE TABLE Author (
        ID int PRIMARY KEY AUTO_INCREMENT,
-       Name varchar(512)
+       Name varchar(512) UNIQUE NOT NULL
 );
 
 CREATE TABLE Author_Recipe (

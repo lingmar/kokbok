@@ -18,7 +18,7 @@ class CookBookObject(metaclass=ABCMeta):
 
     @classmethod
     @abstractmethod
-    def by_id(cls, _id):
+    def by_id(cls, _id, dbconf):
         """
         Return a new object of the current type by its ID. Raises an
         Exception if ID is not present.
@@ -43,6 +43,8 @@ class CookBookObject(metaclass=ABCMeta):
 
     def execute_one(self, query, arglist, dbconf=None):
         if not dbconf:
+            print("USING SELF.DBCONF!")
+            print(self.dbconf)
             dbconf = self.dbconf
         with MySQLdb.connect(**dbconf) as cursor:
             cursor.execute(query, arglist)
@@ -94,7 +96,7 @@ class Ingredient(CookBookObject):
         (e.g. one can of tomatoes, an egg)
         """
 
-        super(Ingredient, self).__init__(dbconf)
+        super(Ingredient, self).__init__(dbconf=dbconf)
 
         self.name = name
         self.price = price
@@ -117,9 +119,9 @@ class Ingredient(CookBookObject):
             self._id = self.execute_one(query, arglist)
 
     @classmethod
-    def by_id(cls, _id):
+    def by_id(cls, _id, dbconf):
         query = """SELECT * FROM Ingredient WHERE ID = %s"""
-        with MySQLdb.connect(**conf.db) as cursor:
+        with MySQLdb.connect(**dbconf) as cursor:
             cursor.execute(query, [_id])
             ingredient = cursor.fetchone()
 
@@ -244,7 +246,7 @@ class Recipe():
         return s
 
     @classmethod
-    def by_id(cls, _id):
+    def by_id(cls, _id, dbconf):
         recipe_query = """SELECT *
         FROM Recipe WHERE ID = %s"""
 
@@ -255,7 +257,7 @@ class Recipe():
         FROM Recipe_Instruction join Recipe on RecipeID = Recipe.ID
         WHERE Recipe.ID = %s"""
 
-        with MySQLdb.connect(**conf.db) as cursor:
+        with MySQLdb.connect(**dbconf) as cursor:
             # Fetch from Recipe table, strip off ID
             cursor.execute(recipe_query, [_id])
             result = cursor.fetchone()
@@ -350,14 +352,14 @@ class IngredientList:
         return s
 
     @classmethod
-    def by_id(cls, _id):
+    def by_id(cls, _id, dbconf):
         ingredients_query = """SELECT IngredientID FROM IngredientList_Ingredient
         WHERE IngredientListID = %s"""
 
         ingredientlist_query = """SELECT * FROM IngredientList
         WHERE ID = %s"""
 
-        with MySQLdb.connect(**conf.db) as cursor:
+        with MySQLdb.connect(**dbconf) as cursor:
             # Fetch list of ingredients
             cursor.execute(ingredients_query, [_id])
             ingredient_ids = cursor.fetchone()
@@ -366,7 +368,8 @@ class IngredientList:
             cursor.execute(ingredientlist_query, [_id])
             ingredient_list = cursor.fetchone()[1:]
 
-        ingredients = {Ingredient.by_id(ingr_id) for ingr_id in ingredient_ids}
+        ingredients = {Ingredient.by_id(ingr_id, dbconf)
+                       for ingr_id in ingredient_ids}
         return cls(ingredients, *ingredient_list)
 
 CookBookObject.register(IngredientList)

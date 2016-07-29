@@ -34,7 +34,7 @@ CREATE TABLE Recipe (
        CookingTimePrepMinutes int,
        CookingTimeCookMinutes int,
        Servings int,
-       Description varchar(65000),
+       Description text,
        Version int
 );
 
@@ -54,7 +54,7 @@ CREATE TABLE Author_Recipe (
 CREATE TABLE Comment (
        ID int PRIMARY KEY AUTO_INCREMENT,
        Date date not null,
-       Text varchar(65000)
+       Text TEXT
 );
 
 CREATE TABLE Comment_Author (
@@ -122,7 +122,7 @@ CREATE TABLE Ingredient_IngredientCategory (
 
 CREATE TABLE Instruction (
        ID int PRIMARY KEY AUTO_INCREMENT,
-       Text varchar(65000)
+       Text TEXT
 );
 
 CREATE TABLE Recipe_Instruction (
@@ -159,6 +159,8 @@ TEST_DB_CONF['db'] = TEST_DB_NAME
 def test_db(request):
     import MySQLdb
 
+    print("CALLED SETUP!")
+
     conf = TEST_DB_CONF.copy()
     conf.pop('db')
 
@@ -187,11 +189,12 @@ def test_ingredient_save(test_db):
     gramsperunit = 7
 
     ingredient = Ingredient(name, price, energy, fat, protein, carbohydrate,
-                            gramspermilliliter, gramsperunit)
+                            gramspermilliliter, gramsperunit,
+                            dbconf=TEST_DB_CONF)
 
     ingredient.save()
     assert ingredient._id is not None
-    same_ingredient = Ingredient.by_id(ingredient._id)
+    same_ingredient = Ingredient.by_id(ingredient._id, TEST_DB_CONF)
 
     assert same_ingredient.name == name
     assert same_ingredient.price == price
@@ -217,13 +220,14 @@ def test_ingredient_delete(test_db):
     gramsperunit = 7
 
     ingredient = Ingredient(name, price, energy, fat, protein, carbohydrate,
-                            gramspermilliliter, gramsperunit)
+                            gramspermilliliter, gramsperunit,
+                            dbconf=TEST_DB_CONF)
 
     ingredient.save()
     ingredient.delete()
 
     with pytest.raises(NotFoundException):
-        Ingredient.by_id(ingredient._id)
+        Ingredient.by_id(ingredient._id, TEST_DB_CONF)
 
 
 def test_is_subclass():

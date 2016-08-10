@@ -10,39 +10,18 @@ from kokbok import conf
 from kokbok import model
 
 def main():
-    # with MySQLdb.connect(**conf.db) as cursor:
-    #     with open('kokbok.sql') as x:
-    #         for line in x.read().split(';\n'):
-    #             if len(line.strip()) > 0 :
-    #                 cursor.execute(line)
-    #                 cursor.execute("Select * from Recipe")
-    #                 cursor.execute("Select * from Recipe")
-    #                 cursor.execute("Select * from Recipe")
-    #                 print(cursor.fetchall())
-
-    ingredient = model.Ingredient("TestIngredient", 1, 2, 3, 4, 5, 6, 7)
-    ingredient.save()
     
-    ingredient_list = model.IngredientList([ingredient], "TestIngredientList", None)
-    ingredient_list.save()
     
-    recipe = model.Recipe("TestRecipe", 1, 2, 3, "Description", 1, [ingredient_list], "Author", "Instructions", "Comments", "Pictures")
+    ingredient = model.Ingredient("Test", 1, 2, 3, 4, 5, 6, 7)
+    ing_list = model.IngredientList([ingredient], "TestList")
 
+    recipe = model.Recipe("TestRecipe", 1, 2,
+                 3, 4, 5, [ing_list],
+                 6, 7, 8, 9)
     recipe.save()
-    print(recipe)
-    print(recipe.by_id(recipe._id))
-
-    # This raises an exception (probably)
-    # print(ingredient.by_id(398405))
-    print(recipe.by_id(28098))
     
-    # ingredient_list = model.IngredientList([ingredient, ingredient2], "hej")
-    # ingredient_list.save()
-    # print(ingredient_list._id)
-    # print(ingredient_list)
-
-    # Remove ingredient from db
-#    ingredient.delete()
-
+    #ing_list.link_to_recipe(recipe)
+    ing_list.save()
+    
 if __name__ == '__main__':
     main()

@@ -161,7 +161,7 @@ class Ingredient(CookBookObject):
 CookBookObject.register(Ingredient)
 
 
-class Recipe():
+class Recipe(CookBookObject):
     def __init__(self, title, cook_time_prep, cook_time_cook,
                  servings, description, version, ingredient_lists,
                  author, instructions, comments, pictures, id=None):
@@ -240,7 +240,7 @@ class Recipe():
 
             # Link ingredient lists to this recipe
             for ing_list in self.ingredient_lists:
-                ing_list.link_to_recipe(self._id)
+                ing_list.link_to_recipe(self)
 
             # TODO: Save children to db
 
@@ -299,12 +299,15 @@ class Recipe():
         except IntegrityError:
             raise IngredientInUseException()
 
+    def refresh(self):
+        print("refresh not implemented yet")
+
 CookBookObject.register(Recipe)
 
 
-class IngredientList:
+class IngredientList(CookBookObject):
 
-    def __init__(self, ingredients, title, recipe, _id=None):
+    def __init__(self, ingredients, title, _id=None):
         """
         Describe an ingredient list
 
@@ -314,22 +317,22 @@ class IngredientList:
 
         title -- the title of the ingredient list
 
-        recipe -- the Recipe the ingredient list belongs to
-
         """
 
         super(IngredientList, self).__init__()
         self.ingredients = ingredients
         self.title = title
-        self.recipe_id = recipe._id
         self._id = _id
+        self.recipe_id = None
 
     def save(self):
+        assert(self.recipe_id is not None)
+        
         if self._id is None:
-            query = """INSERT INTO IngredientList (Title, RecipeID)
-            VALUES (%s) """
+            insert_query = """INSERT INTO IngredientList (Title, RecipeID)
+            VALUES (%s, %s) """
 
-            self._id = self.execute_one(query, [self.title, self.recipe_id])
+            self._id = self.execute_one(insert_query, [self.title, self.recipe_id])
 
             for ingredient in self.ingredients:
                 query = """INSERT INTO IngredientList_Ingredient
@@ -340,13 +343,31 @@ class IngredientList:
                 arglist = [self._id, ingredient._id]
 
                 self.execute_one(query, arglist)
+        else:
 
-    def link_to_recipe(self, recipe_id):
-        if self.recipe_id is None and self._id is not None:
-            self.recipe_id = recipe_id
-            self.execute_one("""UPDATE IngredientList
-                                SET RecipeID = %s WHERE ID = %s""",
-                             [recipe_id, self._id])
+            update_query = """UPDATE IngredientList 
+                       SET (Title, RecipeID) VALUES (%s, %s) """
+
+            self._id = self.execute_one(update_query, [self.title, self.recipe_id])
+
+            for ingredient in self.ingredients:
+                query = """UPDATE IngredientList_Ingredient
+                      (IngredientListID, IngredientID, PrepNotes,
+                       Magnitude, Unit)
+                       VALUES(%s, %s, 1, 1, 1)"""
+
+                arglist = [self._id, ingredient._id]
+
+                self.execute_one(query, arglist)
+            
+
+    def link_to_recipe(self, recipe):
+        """
+        Set recipe_id to the id of recipe
+        """
+        print(self.recipe_id)
+        assert self.recipe_id is None
+        self.recipe_id = recipe._id
 
     def __str__(self):
         s = ("Ingredients: %s\n"
@@ -375,6 +396,12 @@ class IngredientList:
                        for ingr_id in ingredient_ids}
         return cls(ingredients, *ingredient_list)
 
+    def refresh(self):
+        print("refresh is not implemented yet")
+
+    def delete(self):
+        print("delete is not implemented yet")
+        
 CookBookObject.register(IngredientList)
 
 

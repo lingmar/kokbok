@@ -1,9 +1,27 @@
 import MySQLdb
 from _mysql_exceptions import IntegrityError
 
-from kokbok import conf
-
 from abc import ABCMeta, abstractmethod
+
+import kokbok.conf
+
+
+global dbconf
+dbconf = kokbok.conf.get_db_conf()
+
+
+def db_init():
+    """
+    Initialise a new (clean) database.
+    """
+    conf_no_db_name = dbconf.copy()
+    conf_no_db_name.pop('db')
+
+    with MySQLdb.connect(**conf_no_db_name) as cursor:
+        with open('kokbok.sql') as x:
+            for line in x.read().split(';\n'):
+                if len(line.strip()) > 0:
+                    cursor.execute(line % {'dbname': dbconf['db']})
 
 
 class CookBookObject(metaclass=ABCMeta):
@@ -18,7 +36,7 @@ class CookBookObject(metaclass=ABCMeta):
 
     @classmethod
     @abstractmethod
-    def by_id(cls, _id, dbconf):
+    def by_id(cls, _id):
         """
         Return a new object of the current type by its ID. Raises an
         Exception if ID is not present.
@@ -41,37 +59,23 @@ class CookBookObject(metaclass=ABCMeta):
         """
         return NotImplemented
 
-    def execute_one(self, query, arglist, dbconf=None):
-        if not dbconf:
-            print("USING SELF.DBCONF!")
-            print(self.dbconf)
-            dbconf = self.dbconf
+    def execute_one(self, query, arglist):
         with MySQLdb.connect(**dbconf) as cursor:
             cursor.execute(query, arglist)
 
             cursor.execute("SELECT LAST_INSERT_ID()")
             return cursor.fetchone()[0]
 
-    def execute_many(self, query, arglist, dbconf=None):
-        if not dbconf:
-            dbconf = self.dbconf
+    def execute_many(self, query, arglist):
         with MySQLdb.connect(**dbconf) as cursor:
             cursor.execute_many(query, arglist)
             return cursor.fetchone()
-
-    def __init__(self, dbconf):
-        """
-        dbconf -- the expected configuration for MySQLdb.connect.
-        Probably conf.db.
-        """
-        self.dbconf = dbconf
 
 
 class Ingredient(CookBookObject):
 
     def __init__(self, name, price, energy, fat, protein,
-                 carbohydrate, gramspermilliliter, gramsperunit,
-                 dbconf=conf.db):
+                 carbohydrate, gramspermilliliter, gramsperunit):
         """
         Describe an ingredient
 
@@ -96,7 +100,7 @@ class Ingredient(CookBookObject):
         (e.g. one can of tomatoes, an egg)
         """
 
-        super(Ingredient, self).__init__(dbconf=dbconf)
+        super(Ingredient, self).__init__()
 
         self.name = name
         self.price = price
@@ -119,7 +123,7 @@ class Ingredient(CookBookObject):
             self._id = self.execute_one(query, arglist)
 
     @classmethod
-    def by_id(cls, _id, dbconf):
+    def by_id(cls, _id):
         query = """SELECT * FROM Ingredient WHERE ID = %s"""
         with MySQLdb.connect(**dbconf) as cursor:
             cursor.execute(query, [_id])
@@ -160,8 +164,7 @@ CookBookObject.register(Ingredient)
 class Recipe():
     def __init__(self, title, cook_time_prep, cook_time_cook,
                  servings, description, version, ingredient_lists,
-                 author, instructions, comments, pictures, id=None,
-                 dbconf=conf.db):
+                 author, instructions, comments, pictures, id=None):
         """
         Describe a recipe
 
@@ -208,7 +211,7 @@ class Recipe():
 
         """
 
-        super(Recipe, self).__init__(dbconf)
+        super(Recipe, self).__init__()
 
         self.title = title
         self.cook_time_prep = cook_time_prep
@@ -246,7 +249,7 @@ class Recipe():
         return s
 
     @classmethod
-    def by_id(cls, _id, dbconf):
+    def by_id(cls, _id):
         recipe_query = """SELECT *
         FROM Recipe WHERE ID = %s"""
 
@@ -301,7 +304,7 @@ CookBookObject.register(Recipe)
 
 class IngredientList:
 
-    def __init__(self, ingredients, title, recipe, _id=None, dbconf=conf.db):
+    def __init__(self, ingredients, title, recipe, _id=None):
         """
         Describe an ingredient list
 
@@ -315,7 +318,7 @@ class IngredientList:
 
         """
 
-        super(IngredientList, self).__init__(dbconf)
+        super(IngredientList, self).__init__()
         self.ingredients = ingredients
         self.title = title
         self.recipe_id = recipe._id
@@ -352,7 +355,7 @@ class IngredientList:
         return s
 
     @classmethod
-    def by_id(cls, _id, dbconf):
+    def by_id(cls, _id):
         ingredients_query = """SELECT IngredientID FROM IngredientList_Ingredient
         WHERE IngredientListID = %s"""
 

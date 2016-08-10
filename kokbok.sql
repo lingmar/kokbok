@@ -1,6 +1,6 @@
-CREATE DATABASE IF NOT EXISTS KOKBOK;
+CREATE DATABASE IF NOT EXISTS %(dbname)s;
 
-USE KOKBOK;
+USE %(dbname)s;
 
 START TRANSACTION;
 
@@ -28,7 +28,7 @@ CREATE TABLE Recipe (
        CookingTimePrepMinutes int,
        CookingTimeCookMinutes int,
        Servings int,
-       Description varchar(65000),
+       Description text,
        Version int
 );
 
@@ -48,7 +48,7 @@ CREATE TABLE Author_Recipe (
 CREATE TABLE Comment (
        ID int PRIMARY KEY AUTO_INCREMENT,
        Date date not null,
-       Text varchar(65000)
+       Text TEXT
 );
 
 CREATE TABLE Comment_Author (
@@ -118,7 +118,7 @@ CREATE TABLE Ingredient_IngredientCategory (
 
 CREATE TABLE Instruction (
        ID int PRIMARY KEY AUTO_INCREMENT,
-       Text varchar(65000)
+       Text TEXT
 );
 
 CREATE TABLE Recipe_Instruction (

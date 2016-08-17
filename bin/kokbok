@@ -10,18 +10,19 @@ from kokbok import conf
 from kokbok import model
 
 def main():
-    
-    
+
+    #model.db_init()
     ingredient = model.Ingredient("Test", 1, 2, 3, 4, 5, 6, 7)
-    ing_list = model.IngredientList([ingredient], "TestList")
+    ingredient.save()
+    
+    ingredient_list = model.IngredientList([ingredient], "TestList")
 
     recipe = model.Recipe("TestRecipe", 1, 2,
-                 3, 4, 5, [ing_list],
+                 3, 4, 5, [ingredient_list],
                  6, 7, 8, 9)
     recipe.save()
     
-    #ing_list.link_to_recipe(recipe)
-    ing_list.save()
+    ingredient_list.save()
     
 if __name__ == '__main__':
     main()

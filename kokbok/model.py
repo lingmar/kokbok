@@ -23,7 +23,6 @@ def db_init():
                 if len(line.strip()) > 0:
                     cursor.execute(line % {'dbname': dbconf['db']})
 
-
 class CookBookObject(metaclass=ABCMeta):
 
     @abstractmethod
@@ -341,7 +340,6 @@ class IngredientList(CookBookObject):
                        VALUES(%s, %s, 1, 1, 1)"""
 
                 arglist = [self._id, ingredient._id]
-
                 self.execute_one(query, arglist)
         else:
 
@@ -365,7 +363,6 @@ class IngredientList(CookBookObject):
         """
         Set recipe_id to the id of recipe
         """
-        print(self.recipe_id)
         assert self.recipe_id is None
         self.recipe_id = recipe._id
 

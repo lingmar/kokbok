@@ -12,12 +12,12 @@ DROP TABLE IF EXISTS Recipe_Instruction;
 DROP TABLE IF EXISTS Recipe_Picture;
 DROP TABLE IF EXISTS Ingredient_IngredientCategory;
 
+DROP TABLE IF EXISTS IngredientList;
 DROP TABLE IF EXISTS Recipe;
 DROP TABLE IF EXISTS Author;
 DROP TABLE IF EXISTS Comment;
 DROP TABLE IF EXISTS Instruction;
 DROP TABLE IF EXISTS RecipeCategory;
-DROP TABLE IF EXISTS IngredientList;
 DROP TABLE IF EXISTS Ingredient;
 DROP TABLE IF EXISTS IngredientCategory;
 DROP TABLE IF EXISTS Picture;

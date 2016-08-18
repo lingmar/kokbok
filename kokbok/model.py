@@ -10,6 +10,20 @@ global dbconf
 dbconf = kokbok.conf.get_db_conf()
 
 
+class Unit():
+    """
+    Represents available unit measurements (for ingredient
+    lists). Available options are:
+    - ML (millilitres)
+    - G (grammes)
+    - PCS (pieces)
+    """
+
+    ML = "ml"
+    G = "g"
+    PCS = "pcs"
+
+
 def db_init():
     """
     Initialise a new (clean) database.

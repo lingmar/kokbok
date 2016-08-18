@@ -1,5 +1,5 @@
 import MySQLdb
-from _mysql_exceptions import IntegrityError
+from _mysql_exceptions import IntegrityError, MySQLError
 
 from abc import ABCMeta, abstractmethod
 
@@ -19,9 +19,18 @@ def db_init():
 
     with MySQLdb.connect(**conf_no_db_name) as cursor:
         with open('kokbok.sql') as x:
-            for line in x.read().split(';\n'):
+            for line_no, line in enumerate(x.read().split(';\n')):
                 if len(line.strip()) > 0:
-                    cursor.execute(line % {'dbname': dbconf['db']})
+                    try:
+                        cursor.execute(line % {'dbname': dbconf['db']})
+                    except MySQLError as e:
+                        print(("Error executing command number %(lineno)d: "
+                               "%(line)s. Error was: %(error)s")
+                              % {'line': line.strip(),
+                                 'lineno': line_no,
+                                 'error': str(e)})
+                        raise e
+
 
 class CookBookObject(metaclass=ABCMeta):
 
@@ -326,7 +335,7 @@ class IngredientList(CookBookObject):
 
     def save(self):
         assert(self.recipe_id is not None)
-        
+
         if self._id is None:
             insert_query = """INSERT INTO IngredientList (Title, RecipeID)
             VALUES (%s, %s) """
@@ -343,7 +352,7 @@ class IngredientList(CookBookObject):
                 self.execute_one(query, arglist)
         else:
 
-            update_query = """UPDATE IngredientList 
+            update_query = """UPDATE IngredientList
                        SET (Title, RecipeID) VALUES (%s, %s) """
 
             self._id = self.execute_one(update_query, [self.title, self.recipe_id])
@@ -357,7 +366,7 @@ class IngredientList(CookBookObject):
                 arglist = [self._id, ingredient._id]
 
                 self.execute_one(query, arglist)
-            
+
 
     def link_to_recipe(self, recipe):
         """
@@ -398,7 +407,7 @@ class IngredientList(CookBookObject):
 
     def delete(self):
         print("delete is not implemented yet")
-        
+
 CookBookObject.register(IngredientList)
 
 

@@ -214,23 +214,6 @@ class Recipe(CookBookObject):
 
         pictures -- a list of pictures of the recipe
 
-
-        Examples:
-
-        .. code-block:: python
-           :dedent: 1
-
-            bread = Recipe(
-            title="bread", servings=4,
-            cook_time_prep=30,
-            cook_time_cook=30,
-            ingredients=[{'title': '',
-                          'ingredients': [{'unit': Unit.DL, 'quantity': 17,
-                                          'ingredient': Ingredient.from_name("wheat flour")}]}],
-            author=Author("Albin Stjerna"),
-            instructions=["Blanda mjöl", "sätt på ugnen", "klart!"]
-            )
-
         """
 
         super(Recipe, self).__init__()
@@ -250,6 +233,41 @@ class Recipe(CookBookObject):
         self.comments = comments
         self.pictures = pictures
 
+    @classmethod
+    def new(_class, title, servings, cook_time_prep, cook_time_cook, ingredients,
+            author, instructions, description, version):
+        """"
+        Create a new recipe and save it to database.
+
+        Examples:
+
+        .. code-block:: python
+           :dedent: 1
+
+            bread = Recipe.new(
+            title="bread",
+            servings=4,
+            cook_time_prep=30,
+            cook_time_cook=30,
+            ingredients=[{'title': '',
+                          'ingredients': [{'unit': Unit.ML, 'quantity': 17, 'prepnotes': None,
+                                          'ingredient': Ingredient.from_name("wheat flour")}]}],
+            author=Author.from_name("Albin Stjerna"),
+            instructions=["Blanda mjöl", "sätt på ugnen", "klart!"]
+            description="Jättegott bröd"
+            version=1
+            )
+        """
+        ingredient_lists = [IngredientList(**x) for x in ingredients]
+
+        recipe = Recipe(title=title, cook_time_prep=cook_time_prep,
+                        cook_time_cook=cook_time_cook, servings=servings,
+                        description=description, version=version,
+                        ingredient_lists=ingredient_lists, author=author,
+                        instructions=instructions, pictures=None, comments=None)
+        recipe.save()
+        return recipe
+    
     def save(self):
         if self._id is None:
             query = """INSERT INTO Recipe (Title, CookingTimePrepMinutes,
@@ -263,8 +281,11 @@ class Recipe(CookBookObject):
             # Link ingredient lists to this recipe
             for ing_list in self.ingredient_lists:
                 ing_list.link_to_recipe(self)
+                ing_list.save()
 
             # TODO: Save children to db
+            
+            # Save instructions to db
 
     def __str__(self):
         s = ("%s %d") % (self.title, int(self._id))
@@ -329,15 +350,17 @@ CookBookObject.register(Recipe)
 
 class IngredientList(CookBookObject):
 
-    def __init__(self, ingredients, title, _id=None):
+    def __init__(self, title, ingredients, _id=None):
         """
         Describe an ingredient list
 
         Keyword arguments
 
-        ingredients -- the list of ingredients
-
         title -- the title of the ingredient list
+
+        ingredients -- the list of ingredients, for example: [{'unit': Unit.ML,
+        'quantity': 17, 'prepnotes': None,
+        'ingredient': Ingredient.from_name("wheat flour")}]
 
         """
 
@@ -357,13 +380,16 @@ class IngredientList(CookBookObject):
             self._id = self.execute_one(insert_query, [self.title, self.recipe_id])
 
             for ingredient in self.ingredients:
-                query = """INSERT INTO IngredientList_Ingredient
+                coupling_query = """INSERT INTO IngredientList_Ingredient
                       (IngredientListID, IngredientID, PrepNotes,
                        Magnitude, Unit)
-                       VALUES(%s, %s, 1, 1, 1)"""
+                       VALUES(%s, %s, %s, %s, %s)"""
 
-                arglist = [self._id, ingredient._id]
-                self.execute_one(query, arglist)
+                arglist = [self._id, ingredient['ingredient']._id,
+                           ingredient['prepnotes'], ingredient['quantity'],
+                           ingredient['unit']]
+                self.execute_one(coupling_query, arglist)
+                
         else:
 
             update_query = """UPDATE IngredientList

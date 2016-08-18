@@ -283,10 +283,19 @@ class Recipe(CookBookObject):
                 ing_list.link_to_recipe(self)
                 ing_list.save()
 
-            # TODO: Save children to db
-            
-            # Save instructions to db
+            instruction_query = """INSERT INTO Instruction (Text) 
+            VALUES (%s)"""
+            recipe_instruction_query = """INSERT INTO Recipe_Instruction 
+            (RecipeID, InstructionID, Step) VALUES (%s, %s, %s)"""
 
+            for step, instruction in enumerate(self.instructions, start=1):
+                instruction_id = self.execute_one(instruction_query, [instruction])
+
+                self.execute_one(recipe_instruction_query,
+                                 (self._id, instruction_id, step))
+                
+            
+           
     def __str__(self):
         s = ("%s %d") % (self.title, int(self._id))
         return s

@@ -21,7 +21,7 @@ def main():
             cook_time_prep=30,
             cook_time_cook=30,
             ingredients=[{'title': '',
-                          'ingredients': [{'unit': 'ml', 'quantity': 17, 'prepnotes': None,
+                          'ingredients': [{'unit': model.Unit.ML, 'quantity': 17, 'prepnotes': None,
                                            'ingredient': ingredient}]}],
             author=None,
             instructions=["Blanda mjöl", "sätt på ugnen", "klart!"],

@@ -16,5 +16,8 @@ KOK_DB_USER="root"
 KOK_DB_PASSWORD=""
 ```
 
+It is recommended to `export` these settings in the file `.env` (which
+will be ignored by Git) and load them using `source .env`.
+
 ## Installing dependencies
 `pip3 install -r requirements.txt`

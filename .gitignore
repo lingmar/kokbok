@@ -50,3 +50,4 @@ coverage.xml
 
 # Emacs temp files
 .#*
+/.env

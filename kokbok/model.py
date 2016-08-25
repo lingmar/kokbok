@@ -300,18 +300,27 @@ class Recipe(CookBookObject):
         s = ("%s %d") % (self.title, int(self._id))
         return s
 
+    
     @classmethod
     def by_id(cls, _id):
+                    
         recipe_query = """SELECT *
         FROM Recipe WHERE ID = %s"""
 
-        ingredient_list_query = """SELECT IL.ID FROM IngredientList as IL join
-         Recipe as R on RecipeID = R.ID WHERE R.ID = %s"""
+        ingredient_lists = IngredientList.from_recipe_id(_id)
 
-        instruction_query = """SELECT InstructionID
-        FROM Recipe_Instruction join Recipe on RecipeID = Recipe.ID
-        WHERE Recipe.ID = %s"""
+        # FIXME: Instruction class?
+        instruction_query = """SELECT Text 
+        FROM Instruction join Recipe_Instruction
+        ON Instruction.ID = Recipe_Instruction.InstructionID
+        WHERE Recipe_Instruction.RecipeID = %s
+        ORDER BY Step ASC"""
 
+        author_query = """SELECT Name 
+        FROM Author join Author_Recipe
+        ON Author.ID = Author_Recipe.AuthorID
+        WHERE Author_Recipe.RecipeID = %s"""
+        
         with MySQLdb.connect(**dbconf) as cursor:
             # Fetch from Recipe table, strip off ID
             cursor.execute(recipe_query, [_id])
@@ -319,26 +328,23 @@ class Recipe(CookBookObject):
 
             if result is None:
                 raise NotFoundException
-
+            
+            # Fetch instructions
+            cursor.execute(instruction_query, [_id])
+            instructions = [i for (i,) in cursor.fetchall()]
+            
+            cursor.execute(author_query, [_id])
+            author = cursor.fetchone()
+            
             recipe = result[1:]
 
-            # Fetch ID:s of ingredient lists
-            cursor.execute(ingredient_list_query, [_id])
-            ingredient_lists_ids = cursor.fetchone()
-
-            # Fetch ID:s of instructions
-            cursor.execute(instruction_query, [_id])
-            instructions_ids = cursor.fetchone()
-
-        ingredient_lists = {IngredientList.by_id(x) for x in
-                            ingredient_lists_ids}
-
         # TBI
-        author = None
-        instructions = None
+        #author = Author.from_recipe_id(_id)
+        #instructions = Instruction.from_recipe_id(_id)
+
         comments = None
         pictures = None
-
+        
         return cls(*recipe, ingredient_lists=ingredient_lists, author=author,
                    instructions=instructions, comments=comments,
                    pictures=pictures, id=_id)
@@ -354,6 +360,23 @@ class Recipe(CookBookObject):
     def refresh(self):
         print("refresh not implemented yet")
 
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            selfdict = self.__dict__
+            otherdict = other.__dict__
+
+            il1 = selfdict.pop('ingredient_lists')
+            il2 = otherdict.pop('ingredient_lists')
+
+            same_lists = all((l1.__dict__ == l2.__dict__ for (l1, l2) in zip(il1, il2)))
+            print([(l1.__dict__, l2.__dict__) for (l1, l2) in zip(il1, il2)])
+            print("same_lists: %s" % same_lists)
+            
+            return selfdict == otherdict and same_lists
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+        
 CookBookObject.register(Recipe)
 
 
@@ -432,24 +455,33 @@ class IngredientList(CookBookObject):
 
     @classmethod
     def by_id(cls, _id):
-        ingredients_query = """SELECT IngredientID FROM IngredientList_Ingredient
+        ingredients_query = """SELECT IngredientID, PrepNotes, Magnitude, Unit
+        FROM IngredientList_Ingredient
         WHERE IngredientListID = %s"""
 
-        ingredientlist_query = """SELECT * FROM IngredientList
+        ingredientlist_query = """SELECT ID, Title, RecipeID FROM IngredientList
         WHERE ID = %s"""
 
         with MySQLdb.connect(**dbconf) as cursor:
             # Fetch list of ingredients
             cursor.execute(ingredients_query, [_id])
-            ingredient_ids = cursor.fetchone()
+            ingredient_data = cursor.fetchall()
 
             # Fetch title and recipe ID
             cursor.execute(ingredientlist_query, [_id])
-            ingredient_list = cursor.fetchone()[1:]
+            (il_id, il_title, il_recipeID) = cursor.fetchone()
 
-        ingredients = {Ingredient.by_id(ingr_id, dbconf)
-                       for ingr_id in ingredient_ids}
-        return cls(ingredients, *ingredient_list)
+            ingredients = [{"ingredient": Ingredient.by_id(ingr_id),
+                            "prepnotes": ingr_prepnotes, "quantity": ingr_quantity,
+                            "unit": ingr_unit}
+                           for (ingr_id, ingr_prepnotes, ingr_quantity,
+                                ingr_unit)
+                           in ingredient_data]
+
+        ingredient_list = cls(il_title, ingredients, il_id)
+        ingredient_list.recipe_id = il_recipeID
+        
+        return ingredient_list
 
     def refresh(self):
         print("refresh is not implemented yet")
@@ -457,6 +489,28 @@ class IngredientList(CookBookObject):
     def delete(self):
         print("delete is not implemented yet")
 
+    @classmethod
+    def from_recipe_id(cls, recipe_id):
+        """
+        Returns the ingredient lists of the recipe with recipe_id
+        """
+        query = """SELECT IL.ID FROM IngredientList as IL join
+         Recipe as R on RecipeID = R.ID WHERE R.ID = %s"""
+
+        with MySQLdb.connect(**dbconf) as cursor:
+            # Fetch ID:s of ingredient lists
+            cursor.execute(query, [recipe_id])
+            ingredient_lists_ids = cursor.fetchone()
+
+            if ingredient_lists_ids is None:
+                raise NotFoundException
+
+        ingredient_lists = [IngredientList.by_id(x) for x in
+                            ingredient_lists_ids]
+
+#        [print(l.__dict__) for l in ingredient_lists]
+        return ingredient_lists
+        
 CookBookObject.register(IngredientList)
 
 

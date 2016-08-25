@@ -1,4 +1,4 @@
-from kokbok.model import Ingredient, CookBookObject, NotFoundException, db_init
+from kokbok.model import *
 import kokbok.conf
 
 import pytest
@@ -78,3 +78,33 @@ def test_ingredient_delete(test_db):
 
 def test_is_subclass():
     assert issubclass(Ingredient, CookBookObject)
+
+def test_new_recipe(test_db):
+    ingredient = Ingredient("Test", 1, 2, 3, 4, 5, 6, 7)
+    ingredient.save()
+    
+    recipe = Recipe.new(
+            title="bread",
+            servings=4,
+            cook_time_prep=30,
+            cook_time_cook=30,
+            ingredients=[{'title': '',
+                          'ingredients': [{'unit': Unit.ML, 'quantity': 17, 'prepnotes': None,
+                                           'ingredient': ingredient}]}],
+            author=None,
+            instructions=["Blanda mjöl", "sätt på ugnen", "klart!"],
+            description="Jättegott bröd",
+            version=1
+            )
+
+    same_recipe = Recipe.by_id(recipe._id)
+    print(recipe.__str__())
+    print(same_recipe.__str__())
+    #print(recipe.__dict__)
+    #print(same_recipe.__dict__)
+
+    #assert(recipe.__dict__ == same_recipe.__dict__)
+    
+    assert(recipe == same_recipe)
+    
+

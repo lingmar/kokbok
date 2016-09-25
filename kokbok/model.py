@@ -163,6 +163,9 @@ class Ingredient(CookBookObject):
         s = ("%s %d") % (self.name, int(self._id))
         return s
 
+    __repr__ = __str__
+    
+    
     def delete(self):
         """FIXME! briefly describe function
 
@@ -294,12 +297,12 @@ class Recipe(CookBookObject):
                 self.execute_one(recipe_instruction_query,
                                  (self._id, instruction_id, step))
                 
-            
-           
     def __str__(self):
         s = ("%s %d") % (self.title, int(self._id))
         return s
-
+    
+    __repr__ = __str__
+    
     
     @classmethod
     def by_id(cls, _id):
@@ -453,6 +456,8 @@ class IngredientList(CookBookObject):
                  [str(x) for x in self.ingredients]))
         return s
 
+    __repr__ = __str__
+    
     @classmethod
     def by_id(cls, _id):
         ingredients_query = """SELECT IngredientID, PrepNotes, Magnitude, Unit

@@ -82,7 +82,7 @@ CREATE TABLE IngredientList (
 
 CREATE TABLE Ingredient (
        ID int PRIMARY KEY AUTO_INCREMENT,
-       Name varchar(1024),
+       Name varchar(1024) UNIQUE NOT NULL,
        Price int UNSIGNED,
        Energy int UNSIGNED,
        Fat int UNSIGNED,

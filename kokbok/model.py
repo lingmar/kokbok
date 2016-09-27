@@ -164,8 +164,7 @@ class Ingredient(CookBookObject):
         return s
 
     __repr__ = __str__
-    
-    
+
     def delete(self):
         """FIXME! briefly describe function
 
@@ -182,6 +181,13 @@ class Ingredient(CookBookObject):
 
     def refresh(self):
         pass
+
+    def __eq__(self, other):
+        return isinstance(other, Ingredient) and self._id == other._id
+
+    def __ne__(self, other):
+        return not self.__eq(other)
+
 
 CookBookObject.register(Ingredient)
 
@@ -270,7 +276,7 @@ class Recipe(CookBookObject):
                         instructions=instructions, pictures=None, comments=None)
         recipe.save()
         return recipe
-    
+
     def save(self):
         if self._id is None:
             query = """INSERT INTO Recipe (Title, CookingTimePrepMinutes,
@@ -286,9 +292,9 @@ class Recipe(CookBookObject):
                 ing_list.link_to_recipe(self)
                 ing_list.save()
 
-            instruction_query = """INSERT INTO Instruction (Text) 
+            instruction_query = """INSERT INTO Instruction (Text)
             VALUES (%s)"""
-            recipe_instruction_query = """INSERT INTO Recipe_Instruction 
+            recipe_instruction_query = """INSERT INTO Recipe_Instruction
             (RecipeID, InstructionID, Step) VALUES (%s, %s, %s)"""
 
             for step, instruction in enumerate(self.instructions, start=1):
@@ -296,34 +302,34 @@ class Recipe(CookBookObject):
 
                 self.execute_one(recipe_instruction_query,
                                  (self._id, instruction_id, step))
-                
+
     def __str__(self):
         s = ("%s %d") % (self.title, int(self._id))
         return s
-    
+
     __repr__ = __str__
-    
-    
+
+
     @classmethod
     def by_id(cls, _id):
-                    
+
         recipe_query = """SELECT *
         FROM Recipe WHERE ID = %s"""
 
         ingredient_lists = IngredientList.from_recipe_id(_id)
 
         # FIXME: Instruction class?
-        instruction_query = """SELECT Text 
+        instruction_query = """SELECT Text
         FROM Instruction join Recipe_Instruction
         ON Instruction.ID = Recipe_Instruction.InstructionID
         WHERE Recipe_Instruction.RecipeID = %s
         ORDER BY Step ASC"""
 
-        author_query = """SELECT Name 
+        author_query = """SELECT Name
         FROM Author join Author_Recipe
         ON Author.ID = Author_Recipe.AuthorID
         WHERE Author_Recipe.RecipeID = %s"""
-        
+
         with MySQLdb.connect(**dbconf) as cursor:
             # Fetch from Recipe table, strip off ID
             cursor.execute(recipe_query, [_id])
@@ -331,14 +337,14 @@ class Recipe(CookBookObject):
 
             if result is None:
                 raise NotFoundException
-            
+
             # Fetch instructions
             cursor.execute(instruction_query, [_id])
             instructions = [i for (i,) in cursor.fetchall()]
-            
+
             cursor.execute(author_query, [_id])
             author = cursor.fetchone()
-            
+
             recipe = result[1:]
 
         # TBI
@@ -347,7 +353,7 @@ class Recipe(CookBookObject):
 
         comments = None
         pictures = None
-        
+
         return cls(*recipe, ingredient_lists=ingredient_lists, author=author,
                    instructions=instructions, comments=comments,
                    pictures=pictures, id=_id)
@@ -365,21 +371,27 @@ class Recipe(CookBookObject):
 
     def __eq__(self, other):
         if isinstance(other, self.__class__):
-            selfdict = self.__dict__
-            otherdict = other.__dict__
+            selfdict = self.__dict__.copy()
+            otherdict = other.__dict__.copy()
 
-            il1 = selfdict.pop('ingredient_lists')
-            il2 = otherdict.pop('ingredient_lists')
+            # Don't compare IDs:
+            selfdict.pop("_id")
+            otherdict.pop("_id")
 
-            same_lists = all((l1.__dict__ == l2.__dict__ for (l1, l2) in zip(il1, il2)))
-            print([(l1.__dict__, l2.__dict__) for (l1, l2) in zip(il1, il2)])
-            print("same_lists: %s" % same_lists)
-            
+            ingredient_lists1 = selfdict.pop('ingredient_lists')
+            ingredient_lists2 = otherdict.pop('ingredient_lists')
+
+            same_lists = all((l1 == l2 for (l1, l2) in zip(ingredient_lists1, ingredient_lists2)))
+
+            # for il1, il2 in zip(ingredient_lists1, ingredient_lists2):
+            #     if not il1 == il2:
+            #         print("{il1} != {il2}".format(il1=il1, il2=il2))
+
             return selfdict == otherdict and same_lists
 
     def __ne__(self, other):
         return not self.__eq__(other)
-        
+
 CookBookObject.register(Recipe)
 
 
@@ -424,7 +436,7 @@ class IngredientList(CookBookObject):
                            ingredient['prepnotes'], ingredient['quantity'],
                            ingredient['unit']]
                 self.execute_one(coupling_query, arglist)
-                
+
         else:
 
             update_query = """UPDATE IngredientList
@@ -457,7 +469,21 @@ class IngredientList(CookBookObject):
         return s
 
     __repr__ = __str__
-    
+
+
+    def __eq__(self, other):
+        if not isinstance(other, self.__class__):
+            return False
+
+        same_titles = self.title == other.title
+
+        same_ingredients = self.ingredients == other.ingredients
+
+        return same_titles and same_ingredients
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     @classmethod
     def by_id(cls, _id):
         ingredients_query = """SELECT IngredientID, PrepNotes, Magnitude, Unit
@@ -485,7 +511,7 @@ class IngredientList(CookBookObject):
 
         ingredient_list = cls(il_title, ingredients, il_id)
         ingredient_list.recipe_id = il_recipeID
-        
+
         return ingredient_list
 
     def refresh(self):
@@ -515,7 +541,8 @@ class IngredientList(CookBookObject):
 
 #        [print(l.__dict__) for l in ingredient_lists]
         return ingredient_lists
-        
+
+
 CookBookObject.register(IngredientList)
 
 

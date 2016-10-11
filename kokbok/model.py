@@ -191,7 +191,6 @@ class Ingredient(CookBookObject):
 
 CookBookObject.register(Ingredient)
 
-
 class Recipe(CookBookObject):
     def __init__(self, title, cook_time_prep, cook_time_cook,
                  servings, description, version, ingredient_lists,
@@ -303,6 +302,23 @@ class Recipe(CookBookObject):
                 self.execute_one(recipe_instruction_query,
                                  (self._id, instruction_id, step))
 
+            if self.author:
+                author_id = self.author_id(self.author)
+                if not author_id:
+                    author_id = self.execute_one(("INSERT INTO Author (Name)"
+                                                  " VALUES (%s)"),
+                                                 [self.author])
+                self.execute_one(("INSERT INTO Author_Recipe "
+                                  "(AuthorID, RecipeID) VALUES (%s, %s)"),
+                                  [author_id, self._id])
+
+    def author_id(self, author):
+        query = "SELECT ID from Author WHERE Name = %s"
+        with MySQLdb.connect(**dbconf) as cursor:
+            cursor.execute(query, [author])
+            result = cursor.fetchone()
+            return result[0] if result else result
+            
     def __str__(self):
         s = ("%s %d") % (self.title, int(self._id))
         return s
@@ -343,12 +359,12 @@ class Recipe(CookBookObject):
             instructions = [i for (i,) in cursor.fetchall()]
 
             cursor.execute(author_query, [_id])
-            author = cursor.fetchone()
-
+            ret_author = cursor.fetchone()
+            author = ret_author[0] if ret_author else ret_author
+            
             recipe = result[1:]
-
+            
         # TBI
-        #author = Author.from_recipe_id(_id)
         #instructions = Instruction.from_recipe_id(_id)
 
         comments = None
